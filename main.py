@@ -34,6 +34,8 @@ def blit(img, x, y): # Use it later!
     WINDOW.blit(img, (x, y))
     pygame.display.update()
 
+def star_position(constant):
+    return random.randint(7, ((constant/15)-7))*15
 
 # Classes for snake construction
 class Snake_head:
@@ -81,7 +83,9 @@ class Snake(Snake_head):
     def __init__(self):
         super().__init__()
         self.list_of_tails = [Snake_tail()]
-        self.places = [[(WIDTH/2) + SPEED, (HEIGHT/2) + SPEED]]    
+        self.places = [[(WIDTH/2) + SPEED, (HEIGHT/2) + SPEED]]   
+        self.score = 0
+    
     def append(self):
         x = (self.list_of_tails[-1].Rectangle.x)
         y = (self.list_of_tails[-1].Rectangle.y)
@@ -136,6 +140,13 @@ class Snake(Snake_head):
             if (i.Rectangle.x == self.Rectangle.x) and (i.Rectangle.y == self.Rectangle.y):
                 return True
         return False
+    
+    def collect_star(self, Star):
+        if (Star.Rectangle.x == self.Rectangle.x) and (Star.Rectangle.y == self.Rectangle.y):
+            Star.change_position()
+            self.append()
+            self.score +=1
+            return True
 
 class Star:
     def __init__(self, x, y):
@@ -144,6 +155,11 @@ class Star:
 
     def draw(self):
         blit(STAR_IMG, self.Rectangle.x, self.Rectangle.y)
+    
+    def change_position(self):
+        self.Rectangle.x = star_position(WIDTH)
+        self.Rectangle.y = star_position(HEIGHT)
+    
 # Set defult 
 WINDOW.fill(BACKGROUND)
 pygame.display.update()
@@ -166,8 +182,8 @@ def main():
     Hero = Snake()
     Hero.append()
     
-    star_x = round(random.randint(100*15, (WIDTH-100)*15)/15)
-    star_y = round(random.randint(100*15, (HEIGHT-100)*15)/15)
+    star_x = star_position(WIDTH) 
+    star_y = star_position(HEIGHT)
 
     print(star_x, star_y)   
     new_star = Star(star_x, star_y)
@@ -179,7 +195,7 @@ def main():
         CLOCK.tick(FPS)
 
         # Score sign
-        label = normal_size.render("Score:", 12, (0,0,0))
+        label = normal_size.render("Score: {0}".format(Hero.score), 12, (0,0,0))
         WINDOW.blit(label, (0, 0))
         new_star.draw()
         
@@ -193,6 +209,7 @@ def main():
             Hero.rotate(0)  
         if keys_pressed[pygame.K_a]:
             Hero.append()
+        Hero.collect_star(new_star)
         Hero.move() 
         
         for event in pygame.event.get(): # Getting all the events
@@ -200,7 +217,7 @@ def main():
                 run = False     
         
         if Hero.lose_condition() == True:
-            break
+            run = False
 
     
     WINDOW.fill(BACKGROUND)

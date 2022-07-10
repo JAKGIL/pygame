@@ -1,5 +1,8 @@
 from nis import match
 from statistics import mode
+from time import sleep
+from traceback import print_tb
+from typing import overload
 import pygame
 import os
 from enum import Enum  
@@ -62,7 +65,7 @@ class Snake(Snake_head):
     def __init__(self):
         super().__init__()
         self.list_of_tails = [Snake_tail()]
-        self.places = [[WIDTH/2, HEIGHT/2]]    
+        self.places = [[(WIDTH/2) + 15, (HEIGHT/2) + 15]]    
     def append(self):
         x = (self.list_of_tails[-1].Rectangle.x)
         y = (self.list_of_tails[-1].Rectangle.y)
@@ -70,22 +73,37 @@ class Snake(Snake_head):
         Vector_y = (self.list_of_tails[-1].Vector[1])
 
         self.list_of_tails.append(Snake_tail(x= x - (15* Vector_x), y = y - (15* Vector_y)))
-        
+        self.places.append([x, y])
     
     def move(self):       
         self.list_of_tails[0].Vector = self.Vector ###
         self.places[0] = [self.Rectangle.x, self.Rectangle.y]
-        print(self.Vector )
         #First render then move
+        
         super().move()
         
-        for i in self.list_of_tails:
-            i.move(self.places[0][0], self.places[0][1])
-        self.append()            
-
+        overwrite = []
+        i = 0
+        while i < len(self.places): # PYTHON YOU SUCCC
+            overwrite.append(self.places[i])
+            i = i+1
+        
+        i=0
+ 
+        while i < len(self.places)-1:
+            self.places[i+1] = overwrite[i]
+            i=i+1
+        
+        i = 1
+        while i < len(self.list_of_tails):
+            self.list_of_tails[i].move(self.places[i][0], self.places[i][1])
+            print(self.list_of_tails[i].Rectangle)
+            i = i +1
+        
+        self.append()
 
     def rotate(self, side):
-        super().rotate(side)
+        super().rotate(side)    
 
 # Set defult 
 WINDOW.fill(BACKGROUND)
@@ -95,7 +113,6 @@ pygame.display.update()
 def main():
     run = True
     Hero = Snake()
-    Hero.append()
     while run: # Main loop
         WINDOW.fill(BACKGROUND)
         CLOCK.tick(FPS)

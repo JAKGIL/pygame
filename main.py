@@ -4,22 +4,36 @@ from statistics import mode
 from time import sleep
 from traceback import print_tb
 from typing import overload
+from xmlrpc.server import SimpleXMLRPCDispatcher
 import pygame
 import os
 from enum import Enum  
+import random
 # Consts
 WIDTH, HEIGHT = 900, 900
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pygame")
+pygame.display.set_caption("Snake")
 BACKGROUND = (186, 255, 255)
-FPS = 3
+FPS = 5
 CLOCK = pygame.time.Clock()
+
 SNAKE_HEAD_IMG = pygame.image.load(os.path.join('pygame/Assets', 'Snake_head.png'))
 SNAKE_TAIL_IMG = pygame.image.load(os.path.join('pygame/Assets', 'Snake_tail.png'))
 SNAKE_HEAD = SNAKE_HEAD_IMG
+STAR_IMG = pygame.image.load(os.path.join('pygame/Assets', 'Star.png'))
+
 SPEED = 15
+
 pygame.font.init() 
-myfont = pygame.font.SysFont('Comic Sans MS', 30)
+normal_size = pygame.font.SysFont('Comic Sans MS', 30)
+huge_size = pygame.font.SysFont('Comic Sans MS', 50)
+
+
+# Global functions
+def blit(img, x, y): # Use it later!
+    WINDOW.blit(img, (x, y))
+    pygame.display.update()
+
 
 # Classes for snake construction
 class Snake_head:
@@ -123,6 +137,13 @@ class Snake(Snake_head):
                 return True
         return False
 
+class Star:
+    def __init__(self, x, y):
+        self.Rectangle = pygame.Rect(x, y, STAR_IMG.get_width(), STAR_IMG.get_height()) # Creating rectangle
+        blit(STAR_IMG, x, y)
+
+    def draw(self):
+        blit(STAR_IMG, self.Rectangle.x, self.Rectangle.y)
 # Set defult 
 WINDOW.fill(BACKGROUND)
 pygame.display.update()
@@ -130,13 +151,38 @@ pygame.display.update()
 
 def main():
     run = True
+    
+    label = huge_size.render("Welcome to Snake in Python!", 12, (0,0,0))
+    blit(label, (WIDTH/2)-230, (HEIGHT/2)-100)
+
+    label = normal_size.render("Press any key to start", 12, (0,0,0))
+    blit(label, (WIDTH/2)-100, (HEIGHT/2)-60)
+
+    sleep(3)
+    while not pygame.key.get_pressed:
+        print(pygame.key.get_pressed)
+        sleep(1)
+    
     Hero = Snake()
     Hero.append()
+    
+    star_x = round(random.randint(100*15, (WIDTH-100)*15)/15)
+    star_y = round(random.randint(100*15, (HEIGHT-100)*15)/15)
+
+    print(star_x, star_y)   
+    new_star = Star(star_x, star_y)
+
     while run: # Main loop
+        keys_pressed = pygame.key.get_pressed()
+        
         WINDOW.fill(BACKGROUND)
         CLOCK.tick(FPS)
 
-        keys_pressed = pygame.key.get_pressed()
+        # Score sign
+        label = normal_size.render("Score:", 12, (0,0,0))
+        WINDOW.blit(label, (0, 0))
+        new_star.draw()
+        
         if keys_pressed[pygame.K_LEFT]:
             Hero.rotate(90)
         if keys_pressed[pygame.K_RIGHT]:
@@ -159,7 +205,7 @@ def main():
     
     WINDOW.fill(BACKGROUND)
     # render text
-    label = myfont.render("YOU FAILED!", 1, (0,0,0))
+    label = normal_size.render("YOU FAILED!", 1, (0,0,0))
     WINDOW.blit(label, ((WIDTH/2)-80, HEIGHT/2))
     pygame.display.update()    
     sleep(10)

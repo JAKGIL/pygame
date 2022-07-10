@@ -51,16 +51,18 @@ class Snake_tail:
         WINDOW.blit(SNAKE_TAIL_IMG, (self.Rectangle.x, self.Rectangle.y))
         pygame.display.update()
     
-    def move(self):
-        self.Rectangle.x += self.Vector[0] * 15
-        self.Rectangle.y += self.Vector[1] * 15
+    def move(self, x, y):
+        self.Rectangle.x = x
+        self.Rectangle.y = y
         WINDOW.blit(SNAKE_TAIL_IMG, (self.Rectangle.x, self.Rectangle.y))
         pygame.display.update()
+
+
 class Snake(Snake_head):
     def __init__(self):
         super().__init__()
         self.list_of_tails = [Snake_tail()]
-    
+        self.places = [[WIDTH/2, HEIGHT/2]]    
     def append(self):
         x = (self.list_of_tails[-1].Rectangle.x)
         y = (self.list_of_tails[-1].Rectangle.y)
@@ -68,18 +70,17 @@ class Snake(Snake_head):
         Vector_y = (self.list_of_tails[-1].Vector[1])
 
         self.list_of_tails.append(Snake_tail(x= x - (15* Vector_x), y = y - (15* Vector_y)))
+        
     
     def move(self):       
-        self.list_of_tails[0].Vector = self.Vector  
-        j =1
-        while j < len(self.list_of_tails) - 1:
-            if self.list_of_tails[j-1].Vector != self.list_of_tails[j+1]:
-               self.list_of_tails[j].Vector = self.list_of_tails[j-1].Vector 
-            j = j + 1
+        self.list_of_tails[0].Vector = self.Vector ###
+        self.places[0] = [self.Rectangle.x, self.Rectangle.y]
+        print(self.Vector )
         #First render then move
         super().move()
+        
         for i in self.list_of_tails:
-            i.move()
+            i.move(self.places[0][0], self.places[0][1])
         self.append()            
 
 

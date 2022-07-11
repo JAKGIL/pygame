@@ -193,7 +193,7 @@ def main():
     blit(label, (WIDTH/2)-(WIDTH/4.5), (HEIGHT/2)-(HEIGHT/40))
 
     pygame.display.update()
-    sleep(10)
+    sleep(5)
     while not pygame.key.get_pressed:
         sleep(1)
     

@@ -17,10 +17,10 @@ BACKGROUND = (186, 255, 255)
 FPS = WIDTH/20
 CLOCK = pygame.time.Clock()
 
-SNAKE_HEAD_IMG = pygame.image.load(os.path.join('pygame/Assets', 'Snake_head.png'))
-SNAKE_TAIL_IMG = pygame.image.load(os.path.join('pygame/Assets', 'Snake_tail.png'))
+SNAKE_HEAD_IMG = pygame.image.load(os.path.join('Assets', 'Snake_head.png'))
+SNAKE_TAIL_IMG = pygame.image.load(os.path.join('Assets', 'Snake_tail.png'))
 SNAKE_HEAD = SNAKE_HEAD_IMG
-STAR_IMG = pygame.image.load(os.path.join('pygame/Assets', 'Star.png'))
+STAR_IMG = pygame.image.load(os.path.join('Assets', 'Star.png'))
 
 SPEED = 15
 
@@ -29,7 +29,7 @@ normal_size = pygame.font.SysFont('Comic Sans MS', round(WIDTH/30))
 huge_size = pygame.font.SysFont('Comic Sans MS', round(HEIGHT/18))
 
 pygame.mixer.init()
-music = pygame.mixer.music.load(os.path.join('pygame/Assets', 'main_theme_1.mp3'))
+music = pygame.mixer.music.load(os.path.join('Assets', 'main_theme_1.mp3'))
 pygame.mixer.music.play(-1)
 
 # Global functions
@@ -253,7 +253,7 @@ def main():
     label = normal_size.render("YOU FAILED!", 1, (0,0,0))
     WINDOW.blit(label, ((WIDTH/2)-(WIDTH/11.25), HEIGHT/2))
     pygame.display.update()
-    death_music = pygame.mixer.music.load(os.path.join('pygame/Assets', 'death.mp3'))
+    death_music = pygame.mixer.music.load(os.path.join('Assets', 'death.mp3'))
     pygame.mixer.music.play(-1)    
     sleep(8)
     pygame.quit()            

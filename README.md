@@ -9,3 +9,8 @@ to deal with pygame:
 
 #10 July 2022
 Snake v1.0 - first realise with few things to change in future updates
+
+#12 July 2022
+Snake v1.1 - first ended version
+
+TO RUN EXECUTABLE GO TO "dict" DIRECTORY AND RUN "Snake"

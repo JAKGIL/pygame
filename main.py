@@ -10,11 +10,11 @@ import os
 from enum import Enum  
 import random
 # Consts
-WIDTH, HEIGHT = 900, 900
+WIDTH = HEIGHT = 900
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake")
 BACKGROUND = (186, 255, 255)
-FPS = 5
+FPS = WIDTH/20
 CLOCK = pygame.time.Clock()
 
 SNAKE_HEAD_IMG = pygame.image.load(os.path.join('pygame/Assets', 'Snake_head.png'))
@@ -25,9 +25,12 @@ STAR_IMG = pygame.image.load(os.path.join('pygame/Assets', 'Star.png'))
 SPEED = 15
 
 pygame.font.init() 
-normal_size = pygame.font.SysFont('Comic Sans MS', 30)
-huge_size = pygame.font.SysFont('Comic Sans MS', 50)
+normal_size = pygame.font.SysFont('Comic Sans MS', round(WIDTH/30))
+huge_size = pygame.font.SysFont('Comic Sans MS', round(HEIGHT/18))
 
+pygame.mixer.init()
+music = pygame.mixer.music.load(os.path.join('pygame/Assets', 'main_theme_1.mp3'))
+pygame.mixer.music.play(-1)
 
 # Global functions
 def blit(img, x, y): # Use it later!
@@ -35,7 +38,7 @@ def blit(img, x, y): # Use it later!
     pygame.display.update()
 
 def star_position(constant):
-    return random.randint(7, ((constant/15)-7))*15
+    return random.randint(7, round((constant/15)-7))*15
 
 # Classes for snake construction
 class Snake_head:
@@ -47,22 +50,39 @@ class Snake_head:
     
     def move(self):
         self.Rectangle.x += self.Vector[0] * SPEED
+        if self.Rectangle.x > WIDTH :
+            self.Rectangle.x = 15
+        if self.Rectangle.x < 0 :
+            self.Rectangle.x = WIDTH-15
+        
         self.Rectangle.y += self.Vector[1] * SPEED
+        if self.Rectangle.y > HEIGHT :
+            self.Rectangle.y = 15
+        if self.Rectangle.y < 0 :
+            self.Rectangle.y = HEIGHT-15
+
         WINDOW.blit(SNAKE_HEAD, (self.Rectangle.x, self.Rectangle.y))
         pygame.display.update()
     
     def rotate(self, side):
         global SNAKE_HEAD_IMG 
         global SNAKE_HEAD
-        SNAKE_HEAD = pygame.transform.rotate(SNAKE_HEAD_IMG, side)
-        if side == 0 :
+        
+        if side == 0 and (self.Vector != [0, 1]):
             self.Vector = [0,-1] 
-        if side == 90 :
+            SNAKE_HEAD = pygame.transform.rotate(SNAKE_HEAD_IMG, side)
+        
+        if side == 90 and (self.Vector != [1, 0]):
             self.Vector = [-1,0] 
-        if side == 180 :
+            SNAKE_HEAD = pygame.transform.rotate(SNAKE_HEAD_IMG, side)
+        
+        if side == 180 and (self.Vector != [0, -1]):
             self.Vector = [0,1] 
-        if side == 270 :
+            SNAKE_HEAD = pygame.transform.rotate(SNAKE_HEAD_IMG, side)
+        
+        if side == 270 and (self.Vector != [-1, 0]):
             self.Vector = [1,0] 
+            SNAKE_HEAD = pygame.transform.rotate(SNAKE_HEAD_IMG, side)
 
         
 class Snake_tail:
@@ -82,8 +102,8 @@ class Snake_tail:
 class Snake(Snake_head):
     def __init__(self):
         super().__init__()
-        self.list_of_tails = [Snake_tail()]
-        self.places = [[(WIDTH/2) + SPEED, (HEIGHT/2) + SPEED]]   
+        self.list_of_tails = [Snake_tail(), Snake_tail()]
+        self.places = [[(WIDTH/2) + SPEED, (HEIGHT/2) + SPEED], [(WIDTH/2) + 2*SPEED, (HEIGHT/2) + 2*SPEED]]   
         self.score = 0
     
     def append(self):
@@ -136,8 +156,10 @@ class Snake(Snake_head):
         super().rotate(side)    
 
     def lose_condition(self):
-        for i in self.list_of_tails:
-            if (i.Rectangle.x == self.Rectangle.x) and (i.Rectangle.y == self.Rectangle.y):
+
+        for i in range(len(self.list_of_tails)):
+            if (self.list_of_tails[i].Rectangle.x == self.Rectangle.x) and (self.list_of_tails[i].Rectangle.y == self.Rectangle.y) and (i != 0):
+                print(self.list_of_tails[i].Rectangle.y, self.list_of_tails[i].Rectangle.x)
                 return True
         return False
     
@@ -164,41 +186,38 @@ class Star:
 WINDOW.fill(BACKGROUND)
 pygame.display.update()
 
-
 def main():
     run = True
     
     label = huge_size.render("Welcome to Snake in Python!", 12, (0,0,0))
-    blit(label, (WIDTH/2)-230, (HEIGHT/2)-100)
+    blit(label, (WIDTH/2)-(WIDTH/4), (HEIGHT/2)-(HEIGHT/9))
 
     label = normal_size.render("Press any key to start", 12, (0,0,0))
-    blit(label, (WIDTH/2)-100, (HEIGHT/2)-60)
+    blit(label, (WIDTH/2)-(WIDTH/9), (HEIGHT/2)-(HEIGHT/15))
 
     sleep(3)
     while not pygame.key.get_pressed:
-        print(pygame.key.get_pressed)
         sleep(1)
     
     Hero = Snake()
-    Hero.append()
-    
     star_x = star_position(WIDTH) 
     star_y = star_position(HEIGHT)
-
-    print(star_x, star_y)   
+ 
     new_star = Star(star_x, star_y)
 
-    while run: # Main loop
+    while run: # Main loop       
         keys_pressed = pygame.key.get_pressed()
-        
+        global FPS 
+        local_FPS = Hero.score + FPS
+        CLOCK.tick(local_FPS) 
         WINDOW.fill(BACKGROUND)
-        CLOCK.tick(FPS)
 
         # Score sign
         label = normal_size.render("Score: {0}".format(Hero.score), 12, (0,0,0))
         WINDOW.blit(label, (0, 0))
         new_star.draw()
         
+
         if keys_pressed[pygame.K_LEFT]:
             Hero.rotate(90)
         if keys_pressed[pygame.K_RIGHT]:
@@ -209,8 +228,10 @@ def main():
             Hero.rotate(0)  
         if keys_pressed[pygame.K_a]:
             Hero.append()
+        
+        Hero.move()             
         Hero.collect_star(new_star)
-        Hero.move() 
+                            
         
         for event in pygame.event.get(): # Getting all the events
             if event.type == pygame.QUIT:
@@ -218,12 +239,11 @@ def main():
         
         if Hero.lose_condition() == True:
             run = False
-
     
     WINDOW.fill(BACKGROUND)
     # render text
     label = normal_size.render("YOU FAILED!", 1, (0,0,0))
-    WINDOW.blit(label, ((WIDTH/2)-80, HEIGHT/2))
+    WINDOW.blit(label, ((WIDTH/2)-(WIDTH/11.25), HEIGHT/2))
     pygame.display.update()    
     sleep(10)
     pygame.quit()            

@@ -35,7 +35,6 @@ pygame.mixer.music.play(-1)
 # Global functions
 def blit(img, x, y): # Use it later!
     WINDOW.blit(img, (x, y))
-    pygame.display.update()
 
 def star_position(constant):
     return random.randint(7, round((constant/15)-7))*15
@@ -46,7 +45,6 @@ class Snake_head:
         self.Rectangle = pygame.Rect(WIDTH/2, HEIGHT/2, SNAKE_HEAD_IMG.get_width(), SNAKE_HEAD_IMG.get_height()) # Head hitbox
         self.Vector = [0,-1] # Going up
         WINDOW.blit(SNAKE_HEAD_IMG, (self.Rectangle.x, self.Rectangle.y))
-        pygame.display.update()
     
     def move(self):
         self.Rectangle.x += self.Vector[0] * SPEED
@@ -62,7 +60,6 @@ class Snake_head:
             self.Rectangle.y = HEIGHT-15
 
         WINDOW.blit(SNAKE_HEAD, (self.Rectangle.x, self.Rectangle.y))
-        pygame.display.update()
     
     def rotate(self, side):
         global SNAKE_HEAD_IMG 
@@ -90,13 +87,11 @@ class Snake_tail:
         self.Rectangle = pygame.Rect(x, y, SNAKE_HEAD_IMG.get_width(), SNAKE_HEAD_IMG.get_height())
         self.Vector = base_Vector # Going up        
         WINDOW.blit(SNAKE_TAIL_IMG, (self.Rectangle.x, self.Rectangle.y))
-        pygame.display.update()
     
     def move(self, x, y):
         self.Rectangle.x = x
         self.Rectangle.y = y
         WINDOW.blit(SNAKE_TAIL_IMG, (self.Rectangle.x, self.Rectangle.y))
-        pygame.display.update()
 
 
 class Snake(Snake_head):
@@ -192,19 +187,24 @@ def main():
     label = huge_size.render("Welcome to Snake in Python!", 12, (0,0,0))
     blit(label, (WIDTH/2)-(WIDTH/4), (HEIGHT/2)-(HEIGHT/9))
 
-    label = normal_size.render("Press any key to start", 12, (0,0,0))
-    blit(label, (WIDTH/2)-(WIDTH/9), (HEIGHT/2)-(HEIGHT/15))
+    label = normal_size.render("Use arrow keys to control the snake", 12, (0,0,0))
+    blit(label, (WIDTH/2)-(WIDTH/6), (HEIGHT/2)-(HEIGHT/18))
+    label = normal_size.render("Get the highest score by colecting the stars", 12, (0,0,0))
+    blit(label, (WIDTH/2)-(WIDTH/4.5), (HEIGHT/2)-(HEIGHT/40))
 
-    sleep(3)
+    pygame.display.update()
+    sleep(10)
     while not pygame.key.get_pressed:
         sleep(1)
     
     Hero = Snake()
-    star_x = star_position(WIDTH) 
-    star_y = star_position(HEIGHT)
  
-    new_star = Star(star_x, star_y)
+    star_list = [Star(star_position(WIDTH), star_position(HEIGHT))]
 
+    for i in range(int(WIDTH/30)):
+        star_list.append(Star(star_position(WIDTH), star_position(HEIGHT)))
+
+    last_score = Hero.score # Save last score to increse difficulty
     while run: # Main loop       
         keys_pressed = pygame.key.get_pressed()
         global FPS 
@@ -212,10 +212,15 @@ def main():
         CLOCK.tick(local_FPS) 
         WINDOW.fill(BACKGROUND)
 
+        if (Hero.score > last_score) and (len(star_list) != WIDTH/60):
+            star_list.pop(-1)
+            last_score = Hero.score
+
         # Score sign
         label = normal_size.render("Score: {0}".format(Hero.score), 12, (0,0,0))
         WINDOW.blit(label, (0, 0))
-        new_star.draw()
+        for i in star_list:
+            i.draw()
         
 
         if keys_pressed[pygame.K_LEFT]:
@@ -229,8 +234,9 @@ def main():
         if keys_pressed[pygame.K_a]:
             Hero.append()
         
-        Hero.move()             
-        Hero.collect_star(new_star)
+        Hero.move()
+        for i in star_list:
+            Hero.collect_star(i)
                             
         
         for event in pygame.event.get(): # Getting all the events
@@ -239,13 +245,17 @@ def main():
         
         if Hero.lose_condition() == True:
             run = False
-    
+        pygame.display.update()
     WINDOW.fill(BACKGROUND)
     # render text
+
+    pygame.mixer.music.stop()
     label = normal_size.render("YOU FAILED!", 1, (0,0,0))
     WINDOW.blit(label, ((WIDTH/2)-(WIDTH/11.25), HEIGHT/2))
-    pygame.display.update()    
-    sleep(10)
+    pygame.display.update()
+    death_music = pygame.mixer.music.load(os.path.join('pygame/Assets', 'death.mp3'))
+    pygame.mixer.music.play(-1)    
+    sleep(8)
     pygame.quit()            
 
 if __name__ == "__main__": # Checks out file name
